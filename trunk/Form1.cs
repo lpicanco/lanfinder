@@ -11,11 +11,16 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.IO;
 using Trinet.Networking;
+using LanFinder.Lib;
+using System.Collections;
+using System.Threading;
 
 namespace LanFinder
 {
     public partial class Form1 : Form
     {
+        private delegate void SetTextCallback(string text);
+
         public Form1()
         {
             InitializeComponent();
@@ -28,83 +33,83 @@ namespace LanFinder
 
         private void Print(String msg)
         {
-            textBox1.Text += msg + Char.ConvertFromUtf32(13) + Char.ConvertFromUtf32(10);
-            textBox1.Refresh();
+            SetTextCallback del = new SetTextCallback(PrintSafe);
+            this.Invoke(del, new object[] { msg });            
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            String oldLabel = button1.Text;
-            button1.Text = "Scanning";
-            button1.Refresh();
-            textBox1.Clear();
+            Thread t = new Thread(new ThreadStart(SearchFile));
+            t.Start();
+        }
 
+        private void SetInitStatus(String msg)
+        {
+            button1.Enabled = false;
+            button1.Text = "Scanning";
+            textBox1.Clear();
+        }
+
+        private void SetFinalStatus(String msg)
+        {
+            button1.Text = msg;
+            button1.Enabled = true;
+        }
+
+        private void PrintSafe(String msg)
+        {
+            textBox1.Text += msg + Char.ConvertFromUtf32(13) + Char.ConvertFromUtf32(10);
+            //textBox1.Refresh();
+        }
+
+        private void SearchFile()
+        {
+            String oldLabel = button1.Text;
+            SetTextCallback del = new SetTextCallback(SetInitStatus);
+            this.Invoke(del, new object[] { "" });
+            
             try
             {
                 int depth = Int32.Parse(txtDepth.Text);
 
-                var interfaces = NetworkInterface.GetAllNetworkInterfaces();
-                foreach (NetworkInterface it in interfaces)
-                {
-                    foreach (var ua in it.GetIPProperties().UnicastAddresses)
-                    {
-                        IPAddress ip = ua.Address;
-                        if (!ip.IsIPv6LinkLocal)
-                        {
-                            //Print(ip.ToString());
-                            //Print("-----------------------------");
-                            ShareCollection folders = new ShareCollection(ip.ToString());
-                            foreach (Share s in folders)
-                            {
-                                //Print(s.Path);
+                NetworkBrowser nb = new NetworkBrowser();
+                ArrayList hosts = nb.GetNetworkComputers();
 
-                                try
+                foreach (String host in hosts)
+                {
+                    //Print(host);
+                    //Print("-----------------------------");
+                    ShareCollection folders = new ShareCollection(host);
+                    foreach (Share s in folders)
+                    {
+                        //Print(s.Path);
+
+                        try
+                        {
+                            if (s.IsFileSystem && s.Root != null && s.Root.Exists)
+                            {
+                                foreach (var d in s.Root.GetDirectories())
                                 {
-                                    if (s.IsFileSystem && s.Root != null && s.Root.Exists)
+                                    var files = FileHelper.GetFilesRecursive(d.FullName, txtExtension.Text, depth);
+                                    foreach (var file in files)
                                     {
-                                        foreach (var d in s.Root.GetDirectories())
-                                        {
-                                            var files = FileHelper.GetFilesRecursive(d.FullName, txtExtension.Text, depth);
-                                            foreach (var file in files)
-                                            {
-                                                Print(file);
-                                            }
-                                        }
+                                        Print(file);
                                     }
                                 }
-                                catch (Exception ex)
-                                {
-                                    //Print("ERROR: " + ex.Message);
-                                }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            //Print("ERROR: " + ex.Message);
                         }
                     }
                 }
             }
             finally
             {
-                button1.Text = oldLabel;
+                del = new SetTextCallback(SetFinalStatus);
+                this.Invoke(del, new object[] { oldLabel});
             }
-
-            /*
-            Socket sock = new Socket(AddressFamily.InterNetwork,
-            SocketType.Dgram, ProtocolType.Udp);
-            IPEndPoint iep = new IPEndPoint(IPAddress.Any, 9050);
-            sock.Bind(iep);
-            EndPoint ep = (EndPoint)iep;
-            Print("Ready to receive…");
-            byte[] data = new byte[1024];
-            int recv = sock.ReceiveFrom(data, SocketFlags.Broadcast, ref ep);
-            string stringData = Encoding.ASCII.GetString(data, 0, recv);
-            Print(String.Format("received: {0} from: {1}", stringData, ep.ToString()));
-            data = new byte[1024];
-            recv = sock.ReceiveFrom(data, ref ep);
-            stringData = Encoding.ASCII.GetString(data, 0, recv);
-            Print(String.Format("received: {0} from: {1}",
-                       stringData, ep.ToString()));
-            sock.Close();*/
         }
-
-
     }
 }
