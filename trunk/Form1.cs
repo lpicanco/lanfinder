@@ -70,39 +70,24 @@ namespace LanFinder
             
             try
             {
+                IList<Thread> threadList = new List<Thread>();
+
                 int depth = Int32.Parse(txtDepth.Text);
+                String extension = txtExtension.Text;
 
                 NetworkBrowser nb = new NetworkBrowser();
                 ArrayList hosts = nb.GetNetworkComputers();
 
                 foreach (String host in hosts)
                 {
-                    //Print(host);
-                    //Print("-----------------------------");
-                    ShareCollection folders = new ShareCollection(host);
-                    foreach (Share s in folders)
-                    {
-                        //Print(s.Path);
+                    Thread thread = new Thread(new ParameterizedThreadStart(SearchHostFiles));
+                    thread.Start(new SearchHostBean(){ Host = host, Extension = extension, Depth = depth});
+                    threadList.Add(thread);
+                }
 
-                        try
-                        {
-                            if (s.IsFileSystem && s.Root != null && s.Root.Exists)
-                            {
-                                foreach (var d in s.Root.GetDirectories())
-                                {
-                                    var files = FileHelper.GetFilesRecursive(d.FullName, txtExtension.Text, depth);
-                                    foreach (var file in files)
-                                    {
-                                        Print(file);
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            //Print("ERROR: " + ex.Message);
-                        }
-                    }
+                foreach (Thread thread in threadList)
+                {
+                    thread.Join();
                 }
             }
             finally
@@ -111,5 +96,47 @@ namespace LanFinder
                 this.Invoke(del, new object[] { oldLabel});
             }
         }
+
+        private void SearchHostFiles(object beanObj)
+        {
+            SearchHostBean bean = (SearchHostBean)beanObj;
+            String host = bean.Host;
+            String extension = bean.Extension;
+            int depth = bean.Depth;
+
+            Print(host);
+            //Print("-----------------------------");
+            ShareCollection folders = new ShareCollection(host);
+            foreach (Share s in folders)
+            {
+                //Print(s.Path);
+
+                try
+                {
+                    if (s.IsFileSystem && s.Root != null && s.Root.Exists)
+                    {
+                        foreach (var d in s.Root.GetDirectories())
+                        {
+                            var files = FileHelper.GetFilesRecursive(d.FullName, extension, depth);
+                            foreach (var file in files)
+                            {
+                                Print(file);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //Print("ERROR: " + ex.Message);
+                }
+            }
+        }
+    }
+
+    class SearchHostBean 
+    {
+        public String Host { get; set; }
+        public String Extension {get;set;}
+        public int Depth {get; set; }
     }
 }
