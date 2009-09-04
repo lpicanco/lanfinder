@@ -67,33 +67,33 @@ namespace LanFinder
             String oldLabel = button1.Text;
             SetTextCallback del = new SetTextCallback(SetInitStatus);
             this.Invoke(del, new object[] { "" });
-            
+
             try
             {
-                IList<Thread> threadList = new List<Thread>();
+                List<Thread> threadList = new List<Thread>();
 
                 int depth = Int32.Parse(txtDepth.Text);
                 String extension = txtExtension.Text;
 
                 NetworkBrowser nb = new NetworkBrowser();
-                ArrayList hosts = nb.GetNetworkComputers();
+                ArrayList hosts = nb.GetNetworkComputers(String.IsNullOrEmpty(txtDomain.Text) ? null : txtDomain.Text);
 
                 foreach (String host in hosts)
                 {
                     Thread thread = new Thread(new ParameterizedThreadStart(SearchHostFiles));
-                    thread.Start(new SearchHostBean(){ Host = host, Extension = extension, Depth = depth});
+                    thread.Start(new SearchHostBean() { Host = host, Extension = extension, Depth = depth });
                     threadList.Add(thread);
                 }
 
-                foreach (Thread thread in threadList)
+                while (!threadList.All(t => t.ThreadState == ThreadState.Stopped))
                 {
-                    thread.Join();
+                    Thread.Sleep(3000);
                 }
             }
             finally
             {
                 del = new SetTextCallback(SetFinalStatus);
-                this.Invoke(del, new object[] { oldLabel});
+                this.Invoke(del, new object[] { oldLabel });
             }
         }
 

@@ -34,6 +34,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.txtDepth = new System.Windows.Forms.TextBox();
+            this.txtDomain = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // textBox1
@@ -97,11 +99,31 @@
             this.txtDepth.TabIndex = 6;
             this.txtDepth.Text = "3";
             // 
+            // txtDomain
+            // 
+            this.txtDomain.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.txtDomain.Location = new System.Drawing.Point(493, 278);
+            this.txtDomain.Name = "txtDomain";
+            this.txtDomain.Size = new System.Drawing.Size(38, 20);
+            this.txtDomain.TabIndex = 8;
+            // 
+            // label3
+            // 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(445, 281);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(46, 13);
+            this.label3.TabIndex = 7;
+            this.label3.Text = "Domain:";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(692, 311);
+            this.Controls.Add(this.txtDomain);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.txtDepth);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -124,6 +146,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtDepth;
+        private System.Windows.Forms.TextBox txtDomain;
+        private System.Windows.Forms.Label label3;
     }
 }
 
