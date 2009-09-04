@@ -128,7 +128,7 @@ namespace LanFinder.Lib
 
         /// PC's in the Domain</returns>
 
-        public ArrayList GetNetworkComputers()
+        public ArrayList GetNetworkComputers(String domain)
         {
             //local fields
 
@@ -160,7 +160,7 @@ namespace LanFinder.Lib
                     MAX_PREFERRED_LENGTH,
                     out entriesRead,
                     out totalEntries, SV_TYPE_WORKSTATION | 
-                    SV_TYPE_SERVER, null, out 
+                    SV_TYPE_SERVER, domain, out 
                     resHandle);
                 //if the returned with a NERR_Success 
 
